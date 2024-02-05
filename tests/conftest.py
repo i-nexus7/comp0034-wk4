@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import pytest
-from paralympics import create_app
+from paralympics import create_app, db
 
 
 @pytest.fixture(scope='module')
@@ -22,10 +22,21 @@ def app():
     }
     app = create_app(test_config=test_cfg)
 
+    with app.app_context():
+        # Create the test database
+        db.create_all()
+    
     yield app
 
     # clean up / reset resources
     # Delete the test database
+    with app.app_context():
+        # Close the database session
+        db.session.remove()
+        # Drop all tables in the test database
+        db.drop_all()
+        # Explicitly close the connection
+        db.engine.dispose()
     os.unlink(db_path)
 
 
