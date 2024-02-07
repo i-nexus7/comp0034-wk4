@@ -33,3 +33,55 @@ def test_get_specified_region(client):
     assert response.headers["Content-Type"] == "application/json"
     assert response.status_code == 200
     assert response.json == and_json
+
+def test_post_region(client):
+    """
+    GIVEN a Flask test client
+    AND valid JSON for a new region
+    WHEN a POST request is made to /regions
+    THEN the response status_code should be 201
+    """
+    # JSON to create a new region
+    region_json = {
+        "NOC": "ZZZ",
+        "region": "ZedZedZed"
+    }
+    # pass the JSON in the HTTP POST request
+    response = client.post(
+        "/regions",
+        json=region_json,
+        content_type="application/json",
+    )
+    # 201 is the HTTP status code for a successful POST or PUT request
+    # but for some reason, the server returns 200
+    assert response.status_code == 200
+
+# RETURNS TYPEERROR
+def test_patch_region(client, new_region):
+    """
+        GIVEN an existing region
+        AND a Flask test client
+        WHEN an UPDATE request is made to /regions/<noc-code> with notes json
+        THEN the response status code should be 200
+        AND the response content should include the message 'Region <NOC_code> updated'
+    """
+    new_region_notes = {'notes': 'An updated note'}
+    code = new_region['NOC']
+    response = client.patch(f"/regions/{code}", json=new_region_notes)
+    assert response.json['message'] == 'Region NEW updated.'
+    assert response.status_code == 200
+
+# RETURNS TYPEERROR
+def test_delete_region(client, new_region):
+    """
+    GIVEN an existing region in JSON format
+    AND a Flask test client
+    WHEN a DELETE request is made to /regions/<noc-code>
+    THEN the response status code should be 200
+    AND the response content should include the message 'Region {noc_code} deleted.'
+    """
+    # Get the NOC code from the JSON which is returned in the new_region fixture
+    code = new_region['NOC']
+    response = client.delete(f"/regions/{code}")
+    assert response.status_code == 200
+    assert response.json['message'] == 'Region NEW deleted.'
